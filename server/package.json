@@ -26,8 +26,10 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.4",
     "nodemailer": "^7.0.5",
+    "swagger-ui-express": "^5.0.1",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@types/ejs": "^3.1.5",

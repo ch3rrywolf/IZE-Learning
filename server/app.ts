@@ -7,6 +7,10 @@ import cookieParser from 'cookie-parser';
 import {ErrorMiddleware} from './middleware/error';
 import userRouter from './routes/user.route';
 
+const swaggerUi = require('swagger-ui-express');
+const YAML = require('yamljs');
+const swaggerDocument = YAML.load('./swagger.yaml');
+
 // body parser
 app.use(express.json({ limit: '50mb' }));
 
@@ -19,6 +23,9 @@ app.use(
     origin: process.env.ORIGIN,
   }),
 );
+
+// swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/api/v1", userRouter);
 
