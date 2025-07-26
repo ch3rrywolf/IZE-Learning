@@ -14,7 +14,7 @@ export interface IUser extends Document {
     role: string;
     isVerified: boolean;
     courses: Array<{courseId: string}>;
-    comarePassword: (password: string) => Promise<boolean>;
+    comparePassword: (password: string) => Promise<boolean>;
 }
 
 const userSchema: Schema<IUser> = new Schema(
