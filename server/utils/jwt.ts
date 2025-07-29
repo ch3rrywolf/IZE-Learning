@@ -12,14 +12,7 @@ interface ITokenOptions {
     secure?: boolean;
 }
 
-export const sendToken = (user: IUser, statusCode: number, res: Response) => {
-    const accessToken = user.SignAccessToken();
-    const refreshToken = user.SignRefreshToken();
-
-    // upload session to redis
-    redis.set(user._id, JSON.stringify(user) as any);
-
-    // parse envirement variables to integrates with fallback values
+// parse envirement variables to integrates with fallback values
     const accessTokenExpire = parseInt(
         process.env.ACCESS_TOKEN_EXPIRE || "300",
         10
@@ -30,19 +23,27 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
     );
 
     // options for cookies
-    const accessTokenOptions: ITokenOptions = {
-        expires: new Date(Date.now() + accessTokenExpire * 1000),
-        maxAge: accessTokenExpire * 1000,
+    export const accessTokenOptions: ITokenOptions = {
+        expires: new Date(Date.now() + accessTokenExpire * 60 * 60 * 1000),
+        maxAge: accessTokenExpire * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: "lax",
     };
 
-    const refreshTokenOptions: ITokenOptions = {
-        expires: new Date(Date.now() + refreshTokenExpire * 1000),
-        maxAge: refreshTokenExpire * 1000,
+    export const refreshTokenOptions: ITokenOptions = {
+        expires: new Date(Date.now() + refreshTokenExpire * 24 * 60 * 60 * 1000),
+        maxAge: refreshTokenExpire * 24 * 60 * 60 * 1000,
         httpOnly: true,
         sameSite: "lax",
     };
+
+
+export const sendToken = (user: IUser, statusCode: number, res: Response) => {
+    const accessToken = user.SignAccessToken();
+    const refreshToken = user.SignRefreshToken();
+
+    // upload session to redis
+    redis.set(user._id, JSON.stringify(user) as any);
 
     // only set secure to true in production
     if (process.env.NODE_ENV === "production") {
@@ -51,7 +52,7 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
     }
 
     res.cookie("access_token", accessToken, accessTokenOptions);
-    res.cookie("refresh_Token", refreshToken, refreshTokenOptions);
+    res.cookie("refresh_token", refreshToken, refreshTokenOptions);
 
     res.status(statusCode).json({
         success: true,

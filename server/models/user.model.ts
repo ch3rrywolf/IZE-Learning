@@ -83,7 +83,9 @@ userSchema.methods.SignAccessToken = function () {
     {
       id: this._id,
     },
-    process.env.ACCESS_TOKEN || ""
+    process.env.ACCESS_TOKEN || "",{
+      expiresIn: "5m",
+    }
   );
 };
 
@@ -93,7 +95,9 @@ userSchema.methods.SignRefreshToken = function () {
     {
       id: this._id,
     },
-    process.env.REFRESH_TOKEN || ""
+    process.env.REFRESH_TOKEN || "",{
+      expiresIn: "3d",
+    }
   );
 };
 
