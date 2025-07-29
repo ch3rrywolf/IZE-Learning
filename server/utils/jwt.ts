@@ -50,8 +50,8 @@ export const sendToken = (user: IUser, statusCode: number, res: Response) => {
         // refreshTokenOptions.secure = true;
     }
 
-    res.cookie("accessToken", accessToken, accessTokenOptions);
-    res.cookie("refreshToken", refreshToken, refreshTokenOptions);
+    res.cookie("access_token", accessToken, accessTokenOptions);
+    res.cookie("refresh_Token", refreshToken, refreshTokenOptions);
 
     res.status(statusCode).json({
         success: true,
