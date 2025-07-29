@@ -227,7 +227,7 @@ export const updateAccessToken = CatchAsyncError(
         }
       );
 
-      res.cookie("access_token", accessToken,accessTokenOptions);
+      res.cookie("access_token", accessToken, accessTokenOptions);
       res.cookie("refresh_token", refreshToken, refreshTokenOptions);
 
       res.status(200).json({
@@ -251,6 +251,34 @@ export const getUserInfo = CatchAsyncError(
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
 
+    }
+  }
+);
+
+interface ISocialAuthBody {
+  email: string;
+  name: string;
+  avatar: string;
+}
+
+// social auth
+export const socialAuth = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, name, avatar } = req.body as ISocialAuthBody;
+      const user = await userModel.findOne({ email });
+      if (!user) {
+        const newUser = await userModel.create({
+          name,
+          email,
+          avatar,
+        });
+        sendToken(newUser, 200, res);
+      } else {
+        sendToken(user, 200, res);
+      }
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
     }
   }
 );
