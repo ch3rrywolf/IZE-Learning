@@ -11,6 +11,7 @@ import sendMail from "../utils/sendMail";
 import { accessTokenOptions, refreshTokenOptions, sendToken } from "../utils/jwt";
 import { redis } from "../utils/redis";
 import { getUserById } from "../services/user.service";
+import cloudinary from "cloudinary";
 
 // register user
 interface IRegisterationBody {
@@ -294,19 +295,19 @@ interface IUpdateUserInfo {
 export const updateUserInfo = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const {name, email} = req.body as IUpdateUserInfo;
+      const { name, email } = req.body as IUpdateUserInfo;
       const userId = req.user?._id;
       const user = await userModel.findById(userId);
 
       if (email && user) {
-        const isEmailExist = await userModel.findOne({email});
+        const isEmailExist = await userModel.findOne({ email });
         if (isEmailExist) {
           return next(new ErrorHandler("Email already exist", 400));
         }
         user.email = email;
       }
 
-      if(name && user) {
+      if (name && user) {
         user.name = name;
       }
 
@@ -333,9 +334,9 @@ interface IUpdatePassword {
 export const updatePassword = CatchAsyncError(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { oldPassword, newPassword} = req.body as IUpdatePassword;
+      const { oldPassword, newPassword } = req.body as IUpdatePassword;
 
-      if(!oldPassword || !newPassword) {
+      if (!oldPassword || !newPassword) {
         return next(new ErrorHandler("Please enter old and new password", 400))
       }
 
@@ -366,3 +367,57 @@ export const updatePassword = CatchAsyncError(
     }
   }
 );
+
+// update profile picture
+interface IUpdateProfilePicture {
+  avatar: string;
+}
+
+export const updateProfilePicture = CatchAsyncError(async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { avatar } = req.body;
+
+    const userId = req.user?._id;
+
+    const user = await userModel.findById(userId);
+
+    if (avatar && user) {
+      // if user have one avatar then this if
+      if (user?.avatar?.public_id) {
+        // first delete the old image
+        await cloudinary.v2.uploader.destroy(user?.avatar?.public_id);
+
+        const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+          folder: "avatars",
+          width: 150,
+        });
+        user.avatar = {
+          public_id: myCloud.public_id,
+          url: myCloud.secure_url,
+        }
+
+      } else {
+        const myCloud = await cloudinary.v2.uploader.upload(avatar, {
+          folder: "avatars",
+          width: 150,
+        });
+        user.avatar = {
+          public_id: myCloud.public_id,
+          url: myCloud.secure_url,
+        }
+      }
+    }
+
+    await user?.save();
+
+    await redis.set(userId, JSON.stringify(user));
+
+    res.status(200).json({
+      success: true,
+      user,
+    });
+
+  } catch (error: any) {
+    return next(new ErrorHandler(error.message, 400));
+  }
+})
